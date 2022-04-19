@@ -7,6 +7,7 @@ import com.torryharris.employee.crud.model.Employee;
 import com.torryharris.employee.crud.model.Response;
 import com.torryharris.employee.crud.util.Utils;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
@@ -20,32 +21,29 @@ public class EmployeeServer extends AbstractVerticle {
   private static final Logger LOGGER = LogManager.getLogger(EmployeeServer.class);
   private Dao<Employee> employeeDao;
   private Employee employeec;
+  private  Utils utils;
 
   public EmployeeServer(Vertx vertx) {
 
     employeeDao = new EmployeeJdbcDao(vertx);
   }
 
+
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
+
+
+     DeploymentOptions option =new DeploymentOptions().setWorker(true);
 
 
     vertx.eventBus().consumer("responsebyid", message -> {
    //  Response id = (Response) message.body();
       String id = (String) message.body();
       Response  response = new Response();
-      employeeDao.get(id)
-        .future()
-        .onSuccess(employee->{
-          LOGGER.info(employee);
-          response.setStatusCode(200)
-              .setResponseBody(employee.toString());
-           message.reply(response);
-        })
-        .onFailure(throwable->{
-          message.fail(400, "employee with id: " + id +"Not Found");
-          }
-        );
+          Utils.getConnection(Long.parseLong(id));
+
+
+
     });
 
 

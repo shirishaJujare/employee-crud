@@ -2,6 +2,8 @@ package com.torryharris.employee.crud;
 
 import com.torryharris.employee.crud.verticles.ApiServer;
 import com.torryharris.employee.crud.verticles.EmployeeServer;
+import com.torryharris.employee.crud.verticles.WorkerVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +14,9 @@ public class App {
   public static void main(String[] args) {
     Vertx vertx = Vertx.vertx();
     vertx.deployVerticle(ApiServer.class.getName());
-    vertx.deployVerticle((new EmployeeServer(vertx)))
+    vertx.deployVerticle((new EmployeeServer(vertx)));
+    DeploymentOptions worker = new DeploymentOptions().setWorker(true);
+   vertx.deployVerticle(new WorkerVerticle(vertx),worker)
  .onFailure(throwable -> LOGGER.error("Error while starting API server", throwable));
   }
 

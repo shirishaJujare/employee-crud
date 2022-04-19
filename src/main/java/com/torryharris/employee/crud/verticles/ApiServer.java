@@ -21,6 +21,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.sql.Connection;
 import java.util.Base64;
 
 
@@ -40,20 +41,41 @@ public class ApiServer extends AbstractVerticle {
     router.route().handler(BodyHandler.create(false));
 
     /********************************************************************************/
-    router.get("/employees")
+    router.get("/employees/:id")
       .handler(routingContext -> {
-        vertx.eventBus(). request("getall", null,msg->{
+          String id = routingContext.request().getParam("id");
+        vertx.eventBus().request("worker",id,msg->{
         if(msg.succeeded()){
+            System.out.println(msg.result().body());
           routingContext.response()
             .setStatusCode(200)
               .putHeader("content-type","application/json")
-            .end(msg.result().body().toString());
+            .end("employee list",msg.result().body().toString());
           }else{
           routingContext.response().setStatusCode(400)
             .end("Failed to get Employee's list");
            }
         });
       });
+
+    /********************************************************/
+
+      router.get("/employees")
+              .handler(routingContext -> {
+                  vertx.eventBus(). request("getall", null,msg->{
+                      if(msg.succeeded()){
+                          routingContext.response()
+                                  .setStatusCode(200)
+                                  .putHeader("content-type","application/json")
+                                  .end(msg.result().body().toString());
+                      }else{
+                          routingContext.response().setStatusCode(400)
+                                  .end("Failed to get Employee's list");
+                      }
+                  });
+              });
+
+
 
     router.post("/employee")
       .handler(routingContext -> {
