@@ -36,14 +36,22 @@ public class EmployeeServer extends AbstractVerticle {
      DeploymentOptions option =new DeploymentOptions().setWorker(true);
 
 
-    vertx.eventBus().consumer("responsebyid", message -> {
+      vertx.eventBus().consumer("responsebyid", message -> {
    //  Response id = (Response) message.body();
       String id = (String) message.body();
       Response  response = new Response();
-          Utils.getConnection(Long.parseLong(id));
-
-
-
+      employeeDao.get(id)
+        .future()
+        .onSuccess(employee->{
+          LOGGER.info(employee);
+          response.setStatusCode(200)
+              .setResponseBody(employee.toString());
+           message.reply(response);
+        })
+        .onFailure(throwable->{
+          message.fail(400, "employee with id: " + id +"Not Found");
+          }
+        );
     });
 
 
